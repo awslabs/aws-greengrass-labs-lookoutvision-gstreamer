@@ -14,17 +14,30 @@ const int LookoutVisionInferenceClient::POLLING_INTERVAL_IN_SECONDS = 5;
 const std::string LookoutVisionInferenceClient::SHM_NAME = "/gstreamer-lookoutvision-bitmap";
 #endif
 
-LookoutVisionInferenceClient::LookoutVisionInferenceClient(std::string server_url) {
-    setServerUrl(server_url);
+LookoutVisionInferenceClient::LookoutVisionInferenceClient(std::string server_socket) {
+    setServerSocket(server_socket);
     #ifdef SHARED_MEMORY
-    shm_fd = shm_open(SHM_NAME.c_str(), O_CREAT | O_RDWR, 0666);
+    setupSHM();
+    #endif
+}
+
+LookoutVisionInferenceClient::LookoutVisionInferenceClient(
+        AWS::LookoutVision::EdgeAgent::StubInterface* inference_stub) : stub(inference_stub) {
+    #ifdef SHARED_MEMORY
+    setupSHM();
+    #endif
+}
+
+#ifdef SHARED_MEMORY
+void LookoutVisionInferenceClient::setupSHM() {
+    shm_fd = shm_open(SHM_NAME.c_str(), O_CREAT | O_RDWR, S_IRUSR  | S_IWUSR  | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
     if (shm_fd < 0) {
         throw std::runtime_error("shm_open failed");
     }
     ftruncate(shm_fd, shm_size);
     shm_data = (uint8_t*) mmap(0, shm_size, PROT_WRITE, MAP_SHARED, shm_fd, 0);
-    #endif
 }
+#endif
 
 LookoutVisionInferenceClient::~LookoutVisionInferenceClient() {
     stub.reset();
@@ -36,9 +49,9 @@ LookoutVisionInferenceClient::~LookoutVisionInferenceClient() {
     #endif
 }
 
-void LookoutVisionInferenceClient::setServerUrl(std::string server_url) {
-    this->server_url = server_url;
-    channel = grpc::CreateChannel(this->server_url, grpc::InsecureChannelCredentials());
+void LookoutVisionInferenceClient::setServerSocket(std::string server_socket) {
+    this->server_socket = server_socket;
+    channel = grpc::CreateChannel(this->server_socket, grpc::InsecureChannelCredentials());
     stub = AWS::LookoutVision::EdgeAgent::NewStub(channel);
 }
 

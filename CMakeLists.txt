@@ -5,7 +5,7 @@ project(LookoutVisionPlugin)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}/src")
 
 # Add shared memory option
 option(USE_SHARED_MEMORY "Use shared memory?" OFF)
@@ -30,7 +30,7 @@ set(_GRPC_GRPCPP grpc++)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:grpc_cpp_plugin>)
 
 # Proto file
-get_filename_component(hw_proto "./lookoutvision-client/Inference.proto" ABSOLUTE)
+get_filename_component(hw_proto "src/lookoutvision-client/Inference.proto" ABSOLUTE)
 get_filename_component(hw_proto_path "${hw_proto}" PATH)
 
 # Generated sources
@@ -41,7 +41,7 @@ set(hw_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/Inference.grpc.pb.h")
 add_custom_command(
       OUTPUT "${hw_proto_srcs}" "${hw_proto_hdrs}" "${hw_grpc_srcs}" "${hw_grpc_hdrs}"
       COMMAND ${protoc}
-      ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+      ARGS --grpc_out=generate_mock_code=true:"${CMAKE_CURRENT_BINARY_DIR}"
         --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
         -I "${hw_proto_path}"
         --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
@@ -51,7 +51,7 @@ add_custom_command(
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-add_library(LookoutVisionInferenceClient STATIC "./lookoutvision-client/LookoutVisionInferenceClient.cc"
+add_library(LookoutVisionInferenceClient STATIC "src/lookoutvision-client/LookoutVisionInferenceClient.cc"
   ${hw_proto_srcs}
   ${hw_grpc_srcs})
   set_property(TARGET LookoutVisionInferenceClient PROPERTY POSITION_INDEPENDENT_CODE ON)
@@ -62,7 +62,7 @@ target_link_libraries(LookoutVisionInferenceClient
 
 include(FindPkgConfig)
 
-pkg_check_modules(GSTREAMER gstreamer-1.0>=1.0 gstreamer-base-1.0>=1.0)
+pkg_check_modules(GSTREAMER gstreamer-1.0 gstreamer-base-1.0)
 
 #including GStreamer header files directory
 include_directories(
@@ -79,11 +79,11 @@ link_directories(
 )
 
 add_library(gstlookoutvisionmeta STATIC
-    ./gst/lookoutvisionmeta/gstlookoutvisionmeta.cc
+        src/gst/lookoutvisionmeta/gstlookoutvisionmeta.cc
 )
 
 add_library(gstlookoutvision SHARED
-    ./gst/lookoutvision/gstlookoutvision.cc
+        src/gst/lookoutvision/gstlookoutvision.cc
 )
 
 #linking Gstreamer library with target executable
@@ -91,3 +91,20 @@ target_link_libraries(gstlookoutvision
                         gstlookoutvisionmeta
                         ${GSTREAMER_LIBRARIES}
                         LookoutVisionInferenceClient)
+
+option(BUILD_TEST "Build the tests" OFF)
+if(BUILD_TEST)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fprofile-arcs -ftest-coverage")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+
+  FetchContent_Declare(
+          googletest
+          GIT_REPOSITORY https://github.com/google/googletest.git
+          GIT_TAG "main")
+  FetchContent_MakeAvailable(googletest)
+  set(BUILD_GMOCK ON)
+
+  file(DOWNLOAD https://raw.githubusercontent.com/meekrosoft/fff/master/fff.h ./fff.h)
+
+  add_subdirectory(tst)
+endif()

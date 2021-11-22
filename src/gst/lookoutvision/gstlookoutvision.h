@@ -26,7 +26,7 @@ struct _GstLookoutVision {
     LookoutVisionInferenceClient *inference_client;
     int width;
     int height;
-    gchar* server_url;
+    gchar* server_socket;
     gchar* model_component;
     guint model_status_timeout;
 };
