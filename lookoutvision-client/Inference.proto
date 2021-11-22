@@ -1,0 +1,270 @@
+//
+// Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//
+
+syntax = "proto3";
+
+package AWS.LookoutVision;
+
+option java_package = "com.amazonaws.lookoutvision";
+
+service EdgeAgent {
+
+  //
+  // Detects anomalies on the provided bitmap.
+  //
+  // Note:
+  //  1. method supports packed bitmaps in interleaved RGB888 format.
+  //  2. min supported bitmap resolution is 64x64 pixels.
+  //  3. max supported bitmap resolution is 4096x4096 pixels.
+  //  4. users can chose to send bitmap in the protobuf message or
+  //       through a shared memory segment.
+  //  5. serializing large bitmaps into the protobuf message can be quite expensive,
+  //       it is recommended to use shared memory for the best performance.
+  //  6. currently agent cannot handle concurrent DetectAnomalies calls for a single model, all
+  //       these call will be serialized under the hood. This shall be addressed
+  //       in a later release.
+  // Status Codes:
+  //  1. OK - prediction is successful.
+  //  2. UNKNOWN - unknown error has occurred.
+  //  3. INTERNAL - an internal error has occurred.
+  //  4. NOT_FOUND - model not found.
+  //  5. INVALID_ARGUMENT - provided arguments are invalid.
+  //  6. FAILED_PRECONDITION - when DetectAnomalies called for model not in RUNNING state.
+  //  7. RESOURCE_EXHAUSTED - when the agent can not keep up with the request rate.
+  //
+  rpc DetectAnomalies(DetectAnomaliesRequest) returns (DetectAnomaliesResponse);
+
+  //
+  // Starts the model.
+  //
+  // Note:
+  //  1. call can only start a model that is in STOPPED or FAILED state.
+  //  2. call is asynchronous and returns immediately before the model is started.
+  // Status Codes:
+  //  1. OK - model is being started.
+  //  2. UNKNOWN - unknown error has occurred.
+  //  3. INTERNAL - an internal error has occurred.
+  //  4. NOT_FOUND - model with provided name was not found.
+  //  6. RESOURCE_EXHAUSTED - memory is not available to load the model.
+  //  7. FAILED_PRECONDITION - method was called for model that is not in STOPPED or FAILED state.
+  //  8. INVALID_ARGUMENT - model name is invalid.
+  //
+  rpc StartModel(StartModelRequest) returns (StartModelResponse);
+
+  //
+  // Stops the model.
+  //
+  // Note:
+  //  1. call can only stop a model that is in RUNNING.
+  //  2. call is synchronous and returns after the model was stopped.
+  // Status Codes:
+  //  1. OK - model is being stopped.
+  //  2. UNKNOWN - unknown error has occurred.
+  //  3. INTERNAL - an internal error has occurred.
+  //  4. NOT_FOUND - model with provided name was not found.
+  //  7. FAILED_PRECONDITION - method was called for model that is not in RUNNING state.
+  //  8. INVALID_ARGUMENT - model name is invalid.
+  //
+  rpc StopModel(StopModelRequest) returns (StopModelResponse);
+
+  //
+  // Lists available models.
+  //
+  // Status Codes:
+  //  1. OK - call is successful.
+  //  2. UNKNOWN - unknown error has occurred.
+  //  3. INTERNAL - an internal error has occurred.
+  //
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse);
+
+  //
+  // Describes a model.
+  //
+  // Status Codes:
+  //  1. OK - call is successful.
+  //  2. UNKNOWN - unknown error has occurred.
+  //  3. INTERNAL - an internal error has occurred.
+  //  4. NOT_FOUND - model with provided name was not found.
+  //  5. INVALID_ARGUMENT - model name is invalid.
+  //
+  rpc DescribeModel(DescribeModelRequest) returns (DescribeModelResponse);
+}
+
+//
+// Possible model statuses.
+//
+enum ModelStatus {
+  STOPPED = 0;
+  STARTING = 1;
+  RUNNING = 2;
+  FAILED = 3;
+  STOPPING = 4;
+}
+
+//
+// Represents POSIX shared memory segment.
+//
+//  name - name of the POSIX memory segment. See shm_open for more details.
+//  offset - offset to the beginning of the bitmap buffer in bytes
+//    from the start of the shared memory segment.
+//  size - the bitmap buffer size in bytes starting from the offset.
+//
+//
+message SharedMemoryHandle {
+  string name = 1;
+  uint64 size = 2;
+  uint64 offset = 3;
+}
+
+//
+// Represents bitmap.
+//
+//  width - width of the bitmap in pixels.
+//  height - height of the bitmap in pixels.
+//  size - the bitmap buffer size in bytes starting from the offset.
+//  byte_data - bitmap bytes passed in protobuf message.
+//  shared_memory_handle - bitmap bytes passed in shared memory segment.
+//
+message Bitmap {
+  int32 width = 1;
+  int32 height = 2;
+  oneof data {
+    bytes byte_data = 3;
+    SharedMemoryHandle shared_memory_handle = 4;
+  }
+}
+
+//
+// Request for DetectsAnomalies rpc call.
+//
+//  model_component - name of the Lookout for Vision model Greengrass v2 component.
+//  bitmap - input bitmap.
+//
+message DetectAnomaliesRequest {
+  string model_component = 1;
+  Bitmap bitmap = 2;
+}
+
+//
+// Anomaly detection result.
+//
+// Note: See Lookout for Vision cloud API for more details.
+//  is_anomalous - true, if image is anomalous and false if image is normal.
+//  confidence - confidence of the prediction in range [0;1].
+//
+message DetectAnomalyResult {
+  bool is_anomalous = 1;
+  float confidence = 2;
+}
+
+//
+// Response of DetectsAnomalies rpc call.
+//
+//  detect_anomaly_result - anomaly detection result.
+//
+message DetectAnomaliesResponse {
+  DetectAnomalyResult detect_anomaly_result = 1;
+}
+
+//
+// Description of the model.
+//
+//  model_component - name of the Lookout for Vision model Greengrass v2 component.
+//  lookout_vision_model_arn - ARN of the Lookout for Vision model that was used to
+//    generate Greengrass v2 component.
+//  status - current status of the model.
+//  status_message - status message. For models in FAILED state contains additional
+//    error details.
+//
+message ModelDescription {
+  string model_component = 1;
+  string lookout_vision_model_arn = 2;
+  ModelStatus status = 3;
+  string status_message = 4;
+}
+
+//
+// Model metadata.
+//
+//  model_component - name of the Lookout for Vision model Greengrass v2 component.
+//  lookout_vision_model_arn - ARN of the Lookout for Vision model that was used to
+//    generate Greengrass v2 component.
+//  status - current status of the model.
+//  status_message - status message. For models in FAILED state contains additional
+//    error details.
+//
+message ModelMetadata {
+  string model_component = 1;
+  string lookout_vision_model_arn = 2;
+  ModelStatus status = 3;
+  string status_message = 4;
+}
+
+//
+// Request for StartModel rpc call.
+//
+//  model_component - name of the Lookout for Vision model Greengrass v2 component.
+//
+message StartModelRequest {
+  string model_component = 1;
+}
+
+//
+// Response of StartModel rpc call.
+//
+//  status - New model status. STARTING - if the call succeeds.
+//
+message StartModelResponse {
+  ModelStatus status = 1;
+}
+
+//
+// Request for StopModel rpc call.
+//
+//  model_component - name of the Lookout for Vision model Greengrass v2 component.
+//
+message StopModelRequest {
+  string model_component = 1;
+}
+
+//
+// Response of StopModel rpc call.
+//
+//  status - New model status. STOPPED - if the call succeeds.
+//
+message StopModelResponse {
+  ModelStatus status = 1;
+}
+
+//
+// Request for ListModels rpc call.
+//
+message ListModelsRequest {}
+
+//
+// Response of ListModels rpc call.
+//
+//  models - List of available models.
+//
+message ListModelsResponse {
+  repeated ModelMetadata models = 1;
+}
+
+//
+// Request for DescribeModel rpc call.
+//
+//  model_component - name of the Lookout for Vision model Greengrass v2 component.
+//
+message DescribeModelRequest {
+  string model_component = 1;
+}
+
+//
+// Response of DescribeModel rpc call.
+//
+//  model_description - Model description.
+//
+message DescribeModelResponse {
+  ModelDescription model_description = 1;
+}
