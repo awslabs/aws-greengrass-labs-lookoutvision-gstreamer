@@ -12,9 +12,10 @@ public:
         FAILED = -1
     } OperationStatus;
 
-    LookoutVisionInferenceClient(std::string server_url);
+    LookoutVisionInferenceClient(std::string server_socket);
+    LookoutVisionInferenceClient(AWS::LookoutVision::EdgeAgent::StubInterface* inference_stub);
     ~LookoutVisionInferenceClient();
-    void setServerUrl(std::string server_url);
+    void setServerSocket(std::string server_socket);
     GstLookoutVisionResult* DetectAnomalies(std::string model_component, guint8* frame, size_t bytes_size, size_t width,
                                             size_t height);
     OperationStatus StartModel(std::string model_component, int model_status_timeout);
@@ -27,12 +28,13 @@ private:
     int shm_fd;
     uint8_t* shm_data;
     #endif
-    std::string server_url;
+    std::string server_socket;
     std::shared_ptr<grpc::Channel> channel;
-    std::unique_ptr<AWS::LookoutVision::EdgeAgent::Stub> stub;
+    std::unique_ptr<AWS::LookoutVision::EdgeAgent::StubInterface> stub;
 
     #ifdef SHARED_MEMORY
     void writeSHM(guint8* buf, size_t bytes_size);
+    void setupSHM();
     #endif
     bool waitForModelStatusWithTimeout(std::string model_component,
                                        AWS::LookoutVision::ModelStatus expected_status, int timeout_in_seconds);

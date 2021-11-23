@@ -10,7 +10,7 @@
  *     videotestsrc num-buffers=1 pattern="ball"
  *   ! 'video/x-raw, format=RGB, width=1280, height=720'
  *   ! videoconvert
- *   ! lookoutvision server-url="unix:///tmp/aws.iot.lookoutvision.EdgeAgent.sock" model-component="SampleModel"
+ *   ! lookoutvision server-socket="unix:///tmp/aws.iot.lookoutvision.EdgeAgent.sock" model-component="SampleModel"
  *   ! videoconvert
  *   ! jpegenc
  *   ! filesink location=./anomaly.jpg
@@ -28,7 +28,7 @@ GST_DEBUG_CATEGORY_STATIC(gst_lookout_vision_debug);
 
 enum {
     PROP_0,
-    PROP_SERVER_URL,
+    PROP_SERVER_SOCKET,
     PROP_MODEL_COMPONENT,
     PROP_MODEL_STATUS_TIMEOUT
 };
@@ -70,8 +70,8 @@ static void gst_lookout_vision_class_init(GstLookoutVisionClass * klass) {
     gobject_class->get_property = gst_lookout_vision_get_property;
     gobject_class->finalize = gst_lookout_vision_finalize;
 
-    g_object_class_install_property(gobject_class, PROP_SERVER_URL,
-                                    g_param_spec_string("server-url", "Server URL", "URL for gRPC server ?",
+    g_object_class_install_property(gobject_class, PROP_SERVER_SOCKET,
+                                    g_param_spec_string("server-socket", "Server Socket", "Socket for gRPC server ?",
                                                         "unix-abstract:aws.lookoutvision.inference-server",
                                                         G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_MODEL_COMPONENT,
@@ -135,18 +135,18 @@ static void gst_lookout_vision_init(GstLookoutVision * filter) {
     // Set default properties
     filter->model_component = NULL;
     filter->model_status_timeout = 180;
-    filter->server_url = g_strdup("unix:///tmp/aws.iot.lookoutvision.EdgeAgent.sock");
-    filter->inference_client = new LookoutVisionInferenceClient(filter->server_url);
+    filter->server_socket = g_strdup("unix:///tmp/aws.iot.lookoutvision.EdgeAgent.sock");
+    filter->inference_client = new LookoutVisionInferenceClient(filter->server_socket);
 }
 
 static void gst_lookout_vision_set_property(GObject * object, guint prop_id, const GValue * value, GParamSpec * pspec) {
     GstLookoutVision *filter = GST_LOOKOUTVISION(object);
 
     switch (prop_id) {
-        case PROP_SERVER_URL:
-            g_free(filter->server_url);
-            filter->server_url = g_strdup(g_value_get_string(value));
-            filter->inference_client->setServerUrl(filter->server_url);
+        case PROP_SERVER_SOCKET:
+            g_free(filter->server_socket);
+            filter->server_socket = g_strdup(g_value_get_string(value));
+            filter->inference_client->setServerSocket(filter->server_socket);
             if (filter->model_component) {
                 if (filter->inference_client->StartModel(filter->model_component, filter->model_status_timeout)
                         != LookoutVisionInferenceClient::OperationStatus::SUCCESSFUL) {
@@ -176,8 +176,8 @@ static void gst_lookout_vision_get_property(GObject * object, guint prop_id, GVa
     GstLookoutVision *filter = GST_LOOKOUTVISION(object);
 
     switch (prop_id) {
-        case PROP_SERVER_URL:
-            g_value_set_string(value, filter->server_url);
+        case PROP_SERVER_SOCKET:
+            g_value_set_string(value, filter->server_socket);
             break;
         case PROP_MODEL_COMPONENT:
             g_value_set_string(value, filter->model_component);
@@ -197,8 +197,8 @@ static void gst_lookout_vision_finalize(GObject *object) {
         GST_DEBUG_OBJECT(filter, "finalize");
         delete filter->inference_client;
         filter->inference_client = NULL;
-        g_free(filter->server_url);
-        filter->server_url = NULL;
+        g_free(filter->server_socket);
+        filter->server_socket = NULL;
         g_free(filter->model_component);
         filter->model_component = NULL;
     }
