@@ -1,0 +1,53 @@
+{
+  "RecipeFormatVersion": "2020-01-25",
+  "ComponentName": "aws.greengrass.labs.GStreamerPipeline",
+  "ComponentVersion": "1.0.0",
+  "ComponentType": "aws.greengrass.generic",
+  "ComponentDescription": "GStreamer Pipeline for Lookout for Vision inference",
+  "ComponentPublisher": "Amazon",
+  "ComponentConfiguration": {
+    "DefaultConfiguration": {
+      "accessControl": {
+        "aws.greengrass.ipc.mqttproxy": {
+          "aws.greengrass.lookoutvision:mqttproxy:1": {
+            "policyDescription": "Allows access to publish to all topics.",
+            "operations": [
+              "aws.greengrass#PublishToIoTCore"
+            ],
+            "resources": [
+              "*"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "ComponentDependencies": {
+    "aws.iot.lookoutvision.EdgeAgent": {
+      "VersionRequirement": ">=0.1.0 <2.0.0",
+      "DependencyType": "HARD"
+    },
+    "aws.greengrass.labs.lookoutvision.GStreamer": {
+      "VersionRequirement": ">=1.0.0 <1.1.0",
+      "DependencyType": "HARD"
+    },
+    "aws.greengrass.labs.mqttpublisher.GStreamer": {
+      "VersionRequirement": ">=1.0.0 <1.1.0",
+      "DependencyType": "HARD"
+    }
+  },
+  "Manifests": [
+    {
+      "Platform": {
+        "os": "linux"
+      },
+      "Lifecycle": {
+        "run": {
+          "script": "gst-launch-1.0 videotestsrc num-buffers=10 pattern=ball ! 'video/x-raw, format=RGB, width=1280, height=720' ! videoconvert ! lookoutvision server-socket=unix:///tmp/aws.iot.lookoutvision.EdgeAgent.sock model-component=SampleComponentName ! mqttpublisher ! videoconvert ! jpegenc ! filesink location=./anomaly.jpg --gst-plugin-path=/greengrass/v2/"
+        }
+      },
+      "Artifacts": []
+    }
+  ],
+  "Lifecycle": {}
+}
