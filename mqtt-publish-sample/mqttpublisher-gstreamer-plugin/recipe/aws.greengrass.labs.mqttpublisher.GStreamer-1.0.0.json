@@ -1,0 +1,28 @@
+{
+  "RecipeFormatVersion": "2020-01-25",
+  "ComponentName": "aws.greengrass.labs.mqttpublisher.GStreamer",
+  "ComponentVersion": "1.0.0",
+  "ComponentType": "aws.greengrass.generic",
+  "ComponentDescription": "GStreamer Plugin for publishing inference metadata to IoT MQTT",
+  "ComponentPublisher": "Amazon",
+  "ComponentConfiguration": {
+    "DefaultConfiguration": {}
+  },
+  "Manifests": [
+    {
+      "Platform": {
+        "os": "linux"
+      },
+      "Lifecycle": {},
+      "Artifacts": [
+        {
+          "Uri": "s3://<BUCKETNAME>/artifacts/aws.greengrass.labs.mqttpublisher.GStreamer/1.0.0/libgstmqttpublisher.so",
+          "Permission": {
+            "Read": "ALL"
+          }
+        }
+      ]
+    }
+  ],
+  "Lifecycle": {}
+}
