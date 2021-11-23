@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 #include <grpcpp/grpcpp.h>
 #include <string>
 #include "Inference.grpc.pb.h"

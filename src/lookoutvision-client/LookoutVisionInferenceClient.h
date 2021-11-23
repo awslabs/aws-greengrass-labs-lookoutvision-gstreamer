@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef __LOOKOUTVISION_INFERENCE_CLIENT_H__
 #define __LOOKOUTVISION_INFERENCE_CLIENT_H__
 

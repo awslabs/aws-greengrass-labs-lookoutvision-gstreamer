@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef __GST_MQTTPUBLISHER_H__
 #define __GST_MQTTPUBLISHER_H__
 

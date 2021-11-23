@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef __GREENGRASS_CLIENT_H__
 #define __GREENGRASS_CLIENT_H__
 
