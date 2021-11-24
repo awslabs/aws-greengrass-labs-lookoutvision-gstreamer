@@ -75,7 +75,7 @@ static void gst_lookout_vision_class_init(GstLookoutVisionClass * klass) {
 
     g_object_class_install_property(gobject_class, PROP_SERVER_SOCKET,
                                     g_param_spec_string("server-socket", "Server Socket", "Socket for gRPC server ?",
-                                                        "unix-abstract:aws.lookoutvision.inference-server",
+                                                        "unix:///tmp/aws.iot.lookoutvision.EdgeAgent.sock",
                                                         G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_MODEL_COMPONENT,
                                     g_param_spec_string("model-component", "Model Component", "Model Component", "foo",
