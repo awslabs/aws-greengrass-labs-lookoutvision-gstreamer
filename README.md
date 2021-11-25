@@ -27,6 +27,21 @@ model Greengrass component (created through Lookout for Vision's model export AP
 ## Architecture
 ![](lookoutvision-gstreamer-architecture.png)
 
+## Quick Setup
+You can either follow this quick setup or skip this and go to [Build](#build) and proceed from there.
+
+1. Set up GDK CLI - See [Greengrass Development Kit - Command Line Interface](https://github.com/aws-greengrass/aws-greengrass-gdk-cli).
+2. Initialize GStreamer for LookoutForVision project.  
+   `gdk component init --repository aws-greengrass-labs-lookoutvision-gstreamer`
+3. Build the artifact and recipe of the component.  
+   `gdk component build`
+4. Replace placeholders `<PLACEHOLDER BUCKET HERE>` and `<PLACEHOLDER REGION HERE>` with your S3 bucket name and region 
+   respectively in gdk-config.json. Create new version of component in your AWS account.  
+   `gdk component publish`
+
+If you have completed this quick setup, you can skip [Build](#build) and [Greengrass Component](#greengrass-component) 
+sections and directly jump to [Deployment](#deployment).
+
 ## Build
 ### Download
 To download run the following command:
@@ -71,17 +86,16 @@ aws s3 cp libgstlookoutvision.so \
   s3://<BUCKETNAME>/artifacts/aws.greengrass.labs.lookoutvision.GStreamer/1.0.0/libgstlookoutvision.so
 ```
 
-Create a private Greengrass component `aws.greengrass.labs.lookoutvision.GStreamer` with the recipe at 
-`recipe/aws.greengrass.labs.lookoutvision.GStreamer-1.0.0.json` in this project. Replace `<BUCKETNAME>` in recipe with 
-the s3 bucket name used in previous step and run from project root:
+Create a private Greengrass component `aws.greengrass.labs.lookoutvision.GStreamer` with the `recipe.json` file in 
+project root. Replace `<BUCKETNAME>` in recipe with the s3 bucket name used in previous step and run from project root:
 ```
-aws greengrassv2 create-component-version \
-  --inline-recipe fileb://recipe/aws.greengrass.labs.lookoutvision.GStreamerPlugin-1.0.0.json
+aws greengrassv2 create-component-version --inline-recipe fileb://recipe.json
 ```
 
 _Refer [Develop AWS IoT Greengrass components](https://docs.aws.amazon.com/greengrass/v2/developerguide/develop-greengrass-components.html) 
 for detailed instructions on creating a Greengrass component._
 
+## Deployment
 Add the component `aws.greengrass.labs.lookoutvision.GStreamer` to your existing Greengrass deployment with Lookout for 
 Vision components. Once deployed, verify that it is in the FINISHED state:
 ```

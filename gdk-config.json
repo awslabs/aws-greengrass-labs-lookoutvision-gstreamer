@@ -1,0 +1,17 @@
+{
+  "component" :{
+    "aws.greengrass.labs.lookoutvision.GStreamer": {
+      "author": "AWS IoT Greengrass",
+      "version": "NEXT_PATCH",
+      "build": {
+        "build_system":"custom",
+        "custom_build_command" : ["bash", "build.sh"]
+      },
+      "publish": {
+        "bucket": "<PLACEHOLDER BUCKET HERE>",
+        "region": "<PLACEHOLDER REGION HERE>"
+      }
+    }
+  },
+  "gdk_version": "1.0.0"
+}

@@ -88,7 +88,7 @@ aws greengrassv2 create-component-version --inline-recipe \
   fileb://mqtt-publish-sample/gstreamer-pipeline/recipe/aws.greengrass.labs.GStreamerPipeline-1.0.0.json
 ```
 
-### Deployment
+## Deployment
 Create a Greengrass deployment with `aws.greengrass.labs.GStreamerPipeline` and Lookout for Vision model component. The 
 other components `aws.iot.lookoutvision.EdgeAgent`, `aws.greengrass.labs.lookoutvision.GStreamer` and 
 `aws.greengrass.labs.mqttpublisher.GStreamer` will be automatically brought in as their dependencies.  
@@ -114,7 +114,7 @@ Component Name: aws.greengrass.labs.mqttpublisher.GStreamer
     Configuration: {}
 ```
 
-### Test
+## Test
 In IoT console, subscribe to MQTT topic lookoutvision/inference/result (or whichever topic you configured while modifying 
 pipeline). You will see messages of this form being published:
 
