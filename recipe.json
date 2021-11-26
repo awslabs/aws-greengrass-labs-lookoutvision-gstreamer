@@ -16,7 +16,7 @@
       "Lifecycle": {},
       "Artifacts": [
         {
-          "Uri": "s3://<BUCKETNAME>/artifacts/aws.greengrass.labs.lookoutvision.GStreamer/1.0.0/libgstlookoutvision.so",
+          "URI": "s3://<BUCKETNAME>/artifacts/aws.greengrass.labs.lookoutvision.GStreamer/1.0.0/libgstlookoutvision.so",
           "Permission": {
             "Read": "ALL"
           }
