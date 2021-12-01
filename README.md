@@ -22,7 +22,7 @@ source pad.
 model Greengrass component (created through Lookout for Vision's model export API) deployed to the Greengrass core device.
 * AWS Command Line Interface (CLI) - See 
 [Installing or updating the latest version of the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
-* CMake - 3.14.0 or later
+* CMake - 3.14.0 or later (only required if building from source - see [Build](#build))
 
 ## Architecture
 ![](lookoutvision-gstreamer-architecture.png)
@@ -43,6 +43,12 @@ If you have completed this quick setup, you can skip [Build](#build) and [Greeng
 sections and directly jump to [Deployment](#deployment).
 
 ## Build
+We provide [plugin binary](https://github.com/awslabs/aws-greengrass-labs-lookoutvision-gstreamer/releases/download/v1.0.0/libgstlookoutvision.so) 
+built on NVIDIA Jetson AGX Xavier (aarch64 architecture) running Ubuntu 18.04 with GLIBC 2.27. This binary is built with 
+option `USE_SHARED_MEMORY=ON` (see [Shared Memory](#shared-memory) section below). If you are using this provided binary, 
+you can skip the rest of this section and jump to [Greengrass Component](#greengrass-component). If you wish to build 
+the binary from source, continue with this section.
+
 ### Download
 To download run the following command:
 
